@@ -31,7 +31,10 @@ import {
     const [isLoading, setLoading] = useState(false);
 
     const handleSubmit = () => {
-        setMessages([...messages,{role:"USER",content:input}]);
+        if(!connection)
+            return;
+        connection.invoke("SendMessage", input);
+        setMessages(messages => [...messages,{role:"USER",content:input}]);
         setInput("")
     };
   
@@ -57,7 +60,7 @@ import {
             connection.start()
             .then(() => {
                 console.log("Connected to SignalR Hub");
-                connection.on("ReceiveMessage", (message) => {
+                connection.on("ReceiveMessage", (message : string) => {
                     setMessages(messages => [...messages,{role:"BOT",content:message}]);
                     setLoading(false)
                 })
