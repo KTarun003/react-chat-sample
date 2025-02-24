@@ -15,11 +15,18 @@ import {
   import { Send, Paperclip, } from "lucide-react";
   import { useEffect, useRef, useState } from "react";
   import { HubConnection, HubConnectionBuilder } from "@microsoft/signalr";
+import { SuggestionsProps, Suggestions } from "./components/ui/chat/suggestions";
 
   interface ChatMessage{
     role: "BOT" | "USER",
-    content: string
+    type: "TEXT" | "SUGGESTIONS",
+    content: string | SuggestionsProps,
   };
+
+  function isSuggestionsProps(content: string | SuggestionsProps): content is SuggestionsProps {
+    return (content as SuggestionsProps) !== undefined;
+  }
+
   
   export default function ChatSupport() {
 
@@ -34,7 +41,7 @@ import {
         if(!connection)
             return;
         connection.invoke("SendMessage", input);
-        setMessages(messages => [...messages,{role:"USER",content:input}]);
+        setMessages(messages => [...messages,{role:"USER",content:input, type:"TEXT"}]);
         setInput("")
     };
   
@@ -53,6 +60,15 @@ import {
                     .withAutomaticReconnect()
                     .build();
         setConnection(newConnection);
+        setMessages(messages => [...messages,{
+          type:"SUGGESTIONS",
+          content:{
+            append:(message) => setMessages(messages => [...messages,{...message,type:"TEXT"}]),
+            label:"Menu",
+            suggestions:["Test1","Test2"]
+          },
+          role:"BOT"
+        }])
     },[]);
 
     useEffect(() => {
@@ -61,7 +77,7 @@ import {
             .then(() => {
                 console.log("Connected to SignalR Hub");
                 connection.on("ReceiveMessage", (message : string) => {
-                    setMessages(messages => [...messages,{role:"BOT",content:message}]);
+                    setMessages(messages => [...messages,{role:"BOT",content:message,type:"TEXT"}]);
                     setLoading(false)
                 })
             })
@@ -102,11 +118,16 @@ import {
                     src=""
                     fallback={message.role == "USER" ? "👨🏽" : "🤖"}
                   />
-                  <ChatBubbleMessage
-                    variant={message.role == "USER" ? "sent" : "received"}
-                  >
-                    {message.content}
-                  </ChatBubbleMessage>
+                  {message.type == "TEXT" && !isSuggestionsProps(message.content)  && <>
+                    <ChatBubbleMessage
+                      variant={message.role == "USER" ? "sent" : "received"}
+                    >
+                      {message.content}
+                    </ChatBubbleMessage>
+                  </>}
+                  {message.type == "SUGGESTIONS" && isSuggestionsProps(message.content) && <>
+                    <Suggestions {...message.content} />
+                  </>}
                 </ChatBubble>
               ))}
   
