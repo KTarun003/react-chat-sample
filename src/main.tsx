@@ -9,7 +9,7 @@ let intKeyAttr = document.querySelector('script[data-name="tsplscript"]')?.attri
 console.log(intKeyAttr)
 if (intKeyAttr !== undefined && intKeyAttr !== null){
   TSPLIntegrationKey = intKeyAttr.value;
-  alert("Integration Key : "+TSPLIntegrationKey);
+  console.log("Integration Key : "+TSPLIntegrationKey);
 }
 
 const newDiv = document.createElement('div');

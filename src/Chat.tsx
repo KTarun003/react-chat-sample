@@ -15,27 +15,69 @@ import {
   import { Send, Paperclip, } from "lucide-react";
   import { useEffect, useRef, useState } from "react";
   import { HubConnection, HubConnectionBuilder } from "@microsoft/signalr";
-import { SuggestionsProps, Suggestions } from "./components/ui/chat/suggestions";
+import { Suggestions } from "./components/ui/chat/suggestions";
+import { QuickReplyProps } from "./lib/types";
+import { isString, isSuggestionsProps } from "./lib/utils";
 
   interface ChatMessage{
     role: "BOT" | "USER",
-    type: "TEXT" | "SUGGESTIONS",
-    content: string | SuggestionsProps,
+    type: "TEXT" | "quick_reply",
+    content: string | QuickReplyProps,
   };
 
-  function isSuggestionsProps(content: string | SuggestionsProps): content is SuggestionsProps {
-    return (content as SuggestionsProps) !== undefined;
-  }
+  
 
   
   export default function ChatSupport() {
 
     const [connection, setConnection] = useState<HubConnection | null>(null);
 
+    const handleReplyAppend = (message: string, msgid:string) => {
+      console.log(message);
+      setMessages(messages => [...messages.filter(x => { 
+        if(!isSuggestionsProps(x.content) )
+          return true;
+        if(x.content.msgid === msgid)
+          return false;
+        return true;
+        }),{role:"USER",content:message, type:"TEXT"}])
+    }
 
-    const [messages, setMessages] = useState<ChatMessage[]>([]);
+    const [messages, setMessages] = useState<ChatMessage[]>([{
+      role:"BOT",
+      type: "quick_reply",
+      content:{
+        append: handleReplyAppend,
+        options: [
+          {
+            type: "text",
+            postbackText: "Schedule Demo",
+            title: "Schedule Demo"
+          },
+          {
+            title: "Schedule Callback",
+            type: "text",
+            postbackText: "Schedule Callback"
+          },
+          {
+            postbackText: "connect to agent",
+            title: "Connect to Agent",
+            type: "text"
+          }
+        ],
+        content: {
+          type: "text",
+          caption: "",
+          text: "Hi I'm TSPL your personal assistant. How I can help you? Select the option to procceed.",
+          header: "Teckinfo Solutions Pvt. Ltd."
+        },
+        msgid: "qr1"
+      }
+    }]);
     const [input, setInput] = useState("");
     const [isLoading, setLoading] = useState(false);
+
+    
 
     const handleSubmit = () => {
         if(!connection)
@@ -60,15 +102,6 @@ import { SuggestionsProps, Suggestions } from "./components/ui/chat/suggestions"
                     .withAutomaticReconnect()
                     .build();
         setConnection(newConnection);
-        setMessages(messages => [...messages,{
-          type:"SUGGESTIONS",
-          content:{
-            append:(message) => setMessages(messages => [...messages,{...message,type:"TEXT"}]),
-            label:"Menu",
-            suggestions:["Test1","Test2"]
-          },
-          role:"BOT"
-        }])
     },[]);
 
     useEffect(() => {
@@ -76,7 +109,7 @@ import { SuggestionsProps, Suggestions } from "./components/ui/chat/suggestions"
             connection.start()
             .then(() => {
                 console.log("Connected to SignalR Hub");
-                connection.on("ReceiveMessage", (message : string) => {
+                connection.on("ReceiveMessage", (message : string,) => {
                     setMessages(messages => [...messages,{role:"BOT",content:message,type:"TEXT"}]);
                     setLoading(false)
                 })
@@ -118,14 +151,14 @@ import { SuggestionsProps, Suggestions } from "./components/ui/chat/suggestions"
                     src=""
                     fallback={message.role == "USER" ? "👨🏽" : "🤖"}
                   />
-                  {message.type == "TEXT" && !isSuggestionsProps(message.content)  && <>
+                  {message.type == "TEXT" && isString(message.content)  && <>
                     <ChatBubbleMessage
                       variant={message.role == "USER" ? "sent" : "received"}
                     >
                       {message.content}
                     </ChatBubbleMessage>
                   </>}
-                  {message.type == "SUGGESTIONS" && isSuggestionsProps(message.content) && <>
+                  {message.type == "quick_reply" && isSuggestionsProps(message.content) && <>
                     <Suggestions {...message.content} />
                   </>}
                 </ChatBubble>

@@ -1,28 +1,35 @@
-export interface SuggestionsProps {
-    label: string
-    append: (message: { role: "USER"; content: string }) => void
-    suggestions: string[]
-  }
+import { Button } from "../button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../card";
+import { QuickReplyProps } from "@/lib/types";
+
+
   
   export function Suggestions({
-    label,
+    content,
     append,
-    suggestions,
-  }: SuggestionsProps) {
+    options,
+    msgid
+  }: QuickReplyProps) {
     return (
       <div className="space-y-6">
-        <h2 className="text-center text-2xl font-bold">{label}</h2>
-        <div className="flex gap-6 text-sm">
-          {suggestions.map((suggestion) => (
-            <button
-              key={suggestion}
-              onClick={() => append({ role: "USER", content: suggestion })}
-              className="h-max flex-1 rounded-xl border bg-background p-4 hover:bg-muted"
+        <Card>
+      <CardHeader>
+        <CardTitle>{content.header}</CardTitle>
+        <CardDescription>Hi I'm TSPL your personal assistant. How I can help you? Select the option to procceed.</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="flex flex-wrap gap-1 text-sm">
+          {options.map((option, index) => (
+            <Button
+              key={index}
+              onClick={() => append(option.postbackText, msgid)}
             >
-              <p>{suggestion}</p>
-            </button>
+              {option.title}
+            </Button>
           ))}
         </div>
+      </CardContent>
+    </Card>
       </div>
     )
   }
