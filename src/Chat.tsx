@@ -43,7 +43,13 @@ import { isString, isSuggestionsProps } from "./lib/utils";
         }),{role:"USER",content:message, type:"TEXT"}])
     }
 
-    const [messages, setMessages] = useState<ChatMessage[]>([{
+    const [messages, setMessages] = useState<ChatMessage[]>([
+      {
+        role:"BOT",
+        content: "Hi, Welcome to our Organization",
+        type:"TEXT"
+      },
+      {
       role:"BOT",
       type: "quick_reply",
       content:{
@@ -136,7 +142,6 @@ import { isString, isSuggestionsProps } from "./lib/utils";
       <ExpandableChat size="md" position="bottom-right">
         <ExpandableChatHeader className="bg-muted/60 flex-col text-center justify-center">
           <h1 className="text-xl font-semibold">Chat with our AI ✨</h1>
-          <p>Ask any question for our AI to answer</p>
         </ExpandableChatHeader>
         <ExpandableChatBody>
           <ChatMessageList className="bg-muted/25" ref={messagesRef}>  

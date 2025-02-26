@@ -91,7 +91,7 @@ const ExpandableChatHeader: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({
   ...props
 }) => (
   <div
-    className={cn("flex items-center justify-between p-4 border-b", className)}
+    className={cn("flex items-center justify-between p-1 border-b", className)}
     {...props}
   />
 );
